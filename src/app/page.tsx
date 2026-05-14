@@ -161,7 +161,7 @@ export default function DashboardPage() {
               id="open-start-modal"
               onClick={() => setShowModal(true)}
               aria-label={t.dashboard.newBatch}
-              className="h-10 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 amber-glow transition-all flex items-center gap-2 px-3 sm:px-4"
+              className="h-10 w-10 sm:w-auto sm:px-4 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 amber-glow transition-all flex items-center justify-center sm:gap-2"
             >
               <PlusIcon className="w-4 h-4 flex-none" />
               <span className="hidden sm:inline">{t.dashboard.newBatch}</span>

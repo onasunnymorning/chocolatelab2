@@ -335,7 +335,7 @@ export function SignalButtons({
 
       {/* Shared modal shell */}
       <Dialog open={modal !== null} onOpenChange={(o) => !o && close()}>
-        <DialogContent className="bg-card border-border/50 max-w-lg mx-4 rounded-2xl">
+        <DialogContent className="bg-card border-border/50 sm:max-w-lg rounded-2xl">
           {modal === "ingredient" && (
             <IngredientModal
               workflowId={workflowId}

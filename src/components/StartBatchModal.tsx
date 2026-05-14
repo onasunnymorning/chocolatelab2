@@ -108,7 +108,7 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border/50 max-w-lg mx-4 rounded-2xl">
+      <DialogContent className="bg-card border-border/50 sm:max-w-lg rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-2">
             {t.startBatch.title}
@@ -144,51 +144,55 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
               {t.startBatch.ingredientsLabel}
             </Label>
             {ingredients.map((ing, i) => (
-              <div key={i} className="flex gap-2 items-center">
+              <div key={i} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                {/* Name — full width on mobile */}
                 <Input
                   placeholder={t.startBatch.ingredientNamePlaceholder}
                   value={ing.name}
                   onChange={(e) => updateIngredient(i, "name", e.target.value)}
-                  className="h-12 flex-1 bg-secondary/50 border-border/60 rounded-xl text-sm"
+                  className="h-12 sm:flex-1 bg-secondary/50 border-border/60 rounded-xl text-sm"
                 />
-                <Input
-                  placeholder={t.startBatch.gramsPlaceholder}
-                  type="number"
-                  min="0"
-                  step="any"
-                  value={ing.amount}
-                  onChange={(e) => updateIngredient(i, "amount", e.target.value)}
-                  className="h-12 w-24 bg-secondary/50 border-border/60 rounded-xl text-sm"
-                />
-                {/* isCacao toggle */}
-                <label
-                  htmlFor={`is-cacao-${i}`}
-                  className={`flex items-center gap-1.5 h-12 px-3 rounded-xl border cursor-pointer select-none text-xs font-medium transition-colors whitespace-nowrap ${
-                    ing.isCacao
-                      ? "bg-amber-400/20 border-amber-400/50 text-amber-300"
-                      : "bg-secondary/30 border-border/40 text-muted-foreground hover:border-border/70"
-                  }`}
-                >
-                  <input
-                    id={`is-cacao-${i}`}
-                    type="checkbox"
-                    checked={ing.isCacao}
-                    onChange={(e) => updateIngredient(i, "isCacao", e.target.checked)}
-                    className="sr-only"
+                {/* Grams + cacao + delete — share a row on mobile */}
+                <div className="flex gap-2 items-center">
+                  <Input
+                    placeholder={t.startBatch.gramsPlaceholder}
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={ing.amount}
+                    onChange={(e) => updateIngredient(i, "amount", e.target.value)}
+                    className="h-12 w-24 bg-secondary/50 border-border/60 rounded-xl text-sm"
                   />
-                  <span className="text-base">{ing.isCacao ? "🍫" : "○"}</span>
-                  {t.startBatch.cacaoLabel}
-                </label>
-                {ingredients.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeIngredient(i)}
-                    className="p-2 text-muted-foreground hover:text-destructive transition-colors rounded-lg"
-                    aria-label="Remove ingredient"
+                  {/* isCacao toggle */}
+                  <label
+                    htmlFor={`is-cacao-${i}`}
+                    className={`flex flex-1 sm:flex-none items-center gap-1.5 h-12 px-3 rounded-xl border cursor-pointer select-none text-xs font-medium transition-colors whitespace-nowrap ${
+                      ing.isCacao
+                        ? "bg-amber-400/20 border-amber-400/50 text-amber-300"
+                        : "bg-secondary/30 border-border/40 text-muted-foreground hover:border-border/70"
+                    }`}
                   >
-                    <TrashIcon className="w-5 h-5" />
-                  </button>
-                )}
+                    <input
+                      id={`is-cacao-${i}`}
+                      type="checkbox"
+                      checked={ing.isCacao}
+                      onChange={(e) => updateIngredient(i, "isCacao", e.target.checked)}
+                      className="sr-only"
+                    />
+                    <span className="text-base">{ing.isCacao ? "🍫" : "○"}</span>
+                    {t.startBatch.cacaoLabel}
+                  </label>
+                  {ingredients.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeIngredient(i)}
+                      className="p-2 text-muted-foreground hover:text-destructive transition-colors rounded-lg flex-none"
+                      aria-label="Remove ingredient"
+                    >
+                      <TrashIcon className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
             <button
