@@ -192,39 +192,18 @@ export default function BatchPage() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 pt-5 space-y-6 pb-[200px]">
-        {/* Timeline */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-              {t.batch.eventLog}
-            </h2>
-            <span className="text-xs text-muted-foreground">
-              {t.batch.eventCount(state.events.length)}
-            </span>
-          </div>
-          <div className="choc-card-glow bg-card rounded-2xl p-4 border border-border/40">
-            <EventTimeline
-              events={state.events}
-              isEnded={state.isEnded}
-              endTime={state.endTime ?? null}
-            />
-          </div>
-        </section>
-
-        {/* Workflow ID footer */}
-        <p className="text-center text-xs text-muted-foreground/50 font-mono break-all">
-          {workflowId}
-        </p>
+      <main className="max-w-2xl mx-auto px-4 pt-3 pb-[156px]">
+        <EventTimeline
+          events={state.events}
+          isEnded={state.isEnded}
+          endTime={state.endTime ?? null}
+        />
       </main>
 
       {/* Sticky action bar — always thumb-reachable */}
       {!state.isEnded && (
         <div className="fixed bottom-0 left-0 right-0 z-20 bg-background/90 backdrop-blur-lg border-t border-border/30 safe-bottom">
-          <div className="max-w-2xl mx-auto px-4 pt-3">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2 text-center">
-              {t.batch.logActivity}
-            </p>
+          <div className="max-w-2xl mx-auto px-4 py-2">
             <SignalButtons
               workflowId={workflowId}
               onSignalSent={fetchState}
