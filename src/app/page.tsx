@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { StartBatchModal } from "@/components/StartBatchModal";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import {
   PlusIcon,
@@ -11,6 +12,7 @@ import {
   Loader2Icon,
 } from "lucide-react";
 import type { Batch } from "@/db/schema";
+import { useLanguage } from "@/i18n/context";
 
 interface ActiveWorkflow {
   workflowId: string;
@@ -58,6 +60,7 @@ function ActiveBatchCard({ batch }: { batch: ActiveWorkflow }) {
 }
 
 function CompletedBatchCard({ batch }: { batch: Batch }) {
+  const { t } = useLanguage();
   const duration =
     batch.startTime && batch.endTime
       ? (() => {
@@ -87,7 +90,7 @@ function CompletedBatchCard({ batch }: { batch: Batch }) {
         {batch.cacaoPercentage != null && (
           <div className="flex-none text-right">
             <p className="text-2xl font-black text-amber-400 leading-none tabular-nums">
-              {batch.cacaoPercentage}%
+              {batch.cacaoPercentage}{t.dashboard.cacaoSuffix}
             </p>
           </div>
         )}
@@ -99,6 +102,7 @@ function CompletedBatchCard({ batch }: { batch: Batch }) {
 }
 
 export default function DashboardPage() {
+  const { t } = useLanguage();
   const [showModal, setShowModal] = useState(false);
   const [activeBatches, setActiveBatches] = useState<ActiveWorkflow[]>([]);
   const [completedBatches, setCompletedBatches] = useState<Batch[]>([]);
@@ -144,21 +148,24 @@ export default function DashboardPage() {
             />
             <div>
               <h1 className="text-lg font-semibold tracking-tight text-foreground leading-none">
-                Chocolate Lab
+                {t.appName}
               </h1>
               <p className="text-[11px] tracking-widest uppercase text-muted-foreground/70 mt-0.5">
-                Refinement Tracker
+                {t.appSubtitle}
               </p>
             </div>
           </div>
-          <Button
-            id="open-start-modal"
-            onClick={() => setShowModal(true)}
-            className="h-10 px-4 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 amber-glow transition-all flex items-center gap-2"
-          >
-            <PlusIcon className="w-4 h-4" />
-            New Batch
-          </Button>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <Button
+              id="open-start-modal"
+              onClick={() => setShowModal(true)}
+              className="h-10 px-4 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 amber-glow transition-all flex items-center gap-2"
+            >
+              <PlusIcon className="w-4 h-4" />
+              {t.dashboard.newBatch}
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -167,7 +174,7 @@ export default function DashboardPage() {
         <section>
           <div className="flex items-center gap-3 mb-4">
             <h2 className="text-base font-semibold text-foreground">
-              Active Refinements
+              {t.dashboard.activeRefinements}
             </h2>
             <div className="w-2 h-2 rounded-full bg-amber-400 live-pulse" />
           </div>
@@ -178,9 +185,9 @@ export default function DashboardPage() {
             </div>
           ) : activeBatches.length === 0 ? (
             <div className="text-center py-10 text-muted-foreground text-sm border border-dashed border-border/40 rounded-2xl">
-              <p>No active batches.</p>
+              <p>{t.dashboard.noActiveBatches}</p>
               <p className="text-xs mt-1 text-muted-foreground/60">
-                Start a new batch to begin tracking.
+                {t.dashboard.noActiveBatchesHint}
               </p>
             </div>
           ) : (
@@ -195,11 +202,11 @@ export default function DashboardPage() {
         {/* Completed batches */}
         <section>
           <h2 className="text-base font-semibold text-foreground mb-4">
-            Completed Batches
+            {t.dashboard.completedBatches}
           </h2>
           {completedBatches.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground text-sm border border-dashed border-border/40 rounded-2xl">
-              <p>No completed batches yet.</p>
+              <p>{t.dashboard.noCompletedBatches}</p>
             </div>
           ) : (
             <div className="space-y-3">

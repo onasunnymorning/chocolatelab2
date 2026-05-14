@@ -18,6 +18,7 @@ import {
   CircleStopIcon,
   Loader2Icon,
 } from "lucide-react";
+import { useLanguage } from "@/i18n/context";
 
 interface SignalButtonsProps {
   workflowId: string;
@@ -54,6 +55,7 @@ function IngredientModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [isCacao, setIsCacao] = useState(false);
@@ -62,7 +64,7 @@ function IngredientModal({
 
   const submit = async () => {
     if (!name.trim() || !amount.trim()) {
-      setError("Both fields are required.");
+      setError(t.signals.errorBothRequired);
       return;
     }
     setLoading(true);
@@ -85,23 +87,23 @@ function IngredientModal({
     <>
       <DialogHeader>
         <DialogTitle className="text-amber-400 flex items-center gap-2 text-lg">
-          <PackageIcon className="w-5 h-5" /> Add Ingredient
+          <PackageIcon className="w-5 h-5" /> {t.signals.addIngredient}
         </DialogTitle>
       </DialogHeader>
       <div className="space-y-4 pt-2">
         <div className="space-y-2">
-          <Label>Ingredient</Label>
+          <Label>{t.signals.ingredientLabel}</Label>
           <Input
-            placeholder="Cacao butter"
+            placeholder={t.signals.ingredientPlaceholder}
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="h-14 text-base bg-secondary/50 border-border/60 rounded-xl"
           />
         </div>
         <div className="space-y-2">
-          <Label>Amount</Label>
+          <Label>{t.signals.amountLabel}</Label>
           <Input
-            placeholder="200g"
+            placeholder={t.signals.amountPlaceholder}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             className="h-14 text-base bg-secondary/50 border-border/60 rounded-xl"
@@ -126,11 +128,9 @@ function IngredientModal({
           <span className="text-xl">{isCacao ? "🍫" : "○"}</span>
           <div>
             <p className="text-sm font-semibold leading-none">
-              {isCacao ? "Cacao ingredient" : "Mark as cacao"}
+              {isCacao ? t.signals.isCacaoActive : t.signals.isCacaoInactive}
             </p>
-            <p className="text-xs opacity-60 mt-0.5">
-              Counts toward cacao % calculation
-            </p>
+            <p className="text-xs opacity-60 mt-0.5">{t.signals.isCacaoDesc}</p>
           </div>
         </label>
         {error && (
@@ -144,7 +144,7 @@ function IngredientModal({
           disabled={loading}
           className="w-full h-14 rounded-xl bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold text-base"
         >
-          {loading ? <Loader2Icon className="animate-spin" /> : "Log Ingredient"}
+          {loading ? <Loader2Icon className="animate-spin" /> : t.signals.logIngredient}
         </Button>
       </div>
     </>
@@ -160,13 +160,14 @@ function NoteModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { t } = useLanguage();
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const submit = async () => {
     if (!note.trim()) {
-      setError("Note cannot be empty.");
+      setError(t.signals.errorNoteEmpty);
       return;
     }
     setLoading(true);
@@ -185,14 +186,14 @@ function NoteModal({
     <>
       <DialogHeader>
         <DialogTitle className="text-violet-400 flex items-center gap-2 text-lg">
-          <StickyNoteIcon className="w-5 h-5" /> Add Note
+          <StickyNoteIcon className="w-5 h-5" /> {t.signals.addNote}
         </DialogTitle>
       </DialogHeader>
       <div className="space-y-4 pt-2">
         <div className="space-y-2">
-          <Label>Note</Label>
+          <Label>{t.signals.noteLabel}</Label>
           <Textarea
-            placeholder="Increased temp to 50°C, added more lecithin…"
+            placeholder={t.signals.notePlaceholder}
             value={note}
             onChange={(e) => setNote(e.target.value)}
             className="min-h-[120px] text-base bg-secondary/50 border-border/60 rounded-xl resize-none"
@@ -209,7 +210,7 @@ function NoteModal({
           disabled={loading}
           className="w-full h-14 rounded-xl bg-violet-500 hover:bg-violet-400 text-white font-bold text-base"
         >
-          {loading ? <Loader2Icon className="animate-spin" /> : "Save Note"}
+          {loading ? <Loader2Icon className="animate-spin" /> : t.signals.saveNote}
         </Button>
       </div>
     </>
@@ -225,6 +226,7 @@ function EndModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -245,14 +247,14 @@ function EndModal({
     <>
       <DialogHeader>
         <DialogTitle className="text-destructive flex items-center gap-2 text-lg">
-          <CircleStopIcon className="w-5 h-5" /> End Refinement
+          <CircleStopIcon className="w-5 h-5" /> {t.signals.endRefinement}
         </DialogTitle>
       </DialogHeader>
       <div className="space-y-4 pt-2">
         <p className="text-muted-foreground text-sm leading-relaxed">
-          This will finalize the batch and save the full report to the database.
-          The workflow will be marked as <strong className="text-foreground">Completed</strong>.
-          This cannot be undone.
+          {t.signals.endConfirmText}{" "}
+          <strong className="text-foreground">{t.signals.endConfirmCompleted}</strong>.{" "}
+          {t.signals.endConfirmWarning}
         </p>
         {error && (
           <p className="text-sm text-destructive bg-destructive/10 rounded-xl px-4 py-3">
@@ -265,7 +267,7 @@ function EndModal({
             onClick={onClose}
             className="flex-1 h-14 rounded-xl border-border/60"
           >
-            Cancel
+            {t.signals.cancel}
           </Button>
           <Button
             id="signal-end-submit"
@@ -273,7 +275,7 @@ function EndModal({
             disabled={loading}
             className="flex-1 h-14 rounded-xl bg-destructive hover:bg-destructive/80 text-white font-bold text-base"
           >
-            {loading ? <Loader2Icon className="animate-spin" /> : "End Batch"}
+            {loading ? <Loader2Icon className="animate-spin" /> : t.signals.endBatch}
           </Button>
         </div>
       </div>
@@ -288,6 +290,7 @@ export function SignalButtons({
   onSignalSent,
   onEnded,
 }: SignalButtonsProps) {
+  const { t } = useLanguage();
   const [modal, setModal] = useState<ModalType>(null);
 
   const close = () => setModal(null);
@@ -302,8 +305,8 @@ export function SignalButtons({
           className="action-btn h-auto py-4 flex flex-col gap-1 items-center justify-center rounded-2xl bg-amber-500/12 hover:bg-amber-500/22 border border-amber-400/30 text-amber-300 font-semibold"
         >
           <PackageIcon className="w-6 h-6 mb-0.5" />
-          <span className="text-sm font-bold leading-none">+ Ingredient</span>
-          <span className="text-[10px] font-normal opacity-55 leading-none">log what went in</span>
+          <span className="text-sm font-bold leading-none">{t.signals.addIngredient}</span>
+          <span className="text-[10px] font-normal opacity-55 leading-none">{t.signals.addIngredientDesc}</span>
         </Button>
 
         <Button
@@ -312,8 +315,8 @@ export function SignalButtons({
           className="action-btn h-auto py-4 flex flex-col gap-1 items-center justify-center rounded-2xl bg-violet-500/12 hover:bg-violet-500/22 border border-violet-400/30 text-violet-300 font-semibold"
         >
           <StickyNoteIcon className="w-6 h-6 mb-0.5" />
-          <span className="text-sm font-bold leading-none">Add Note</span>
-          <span className="text-[10px] font-normal opacity-55 leading-none">freeform observation</span>
+          <span className="text-sm font-bold leading-none">{t.signals.addNote}</span>
+          <span className="text-[10px] font-normal opacity-55 leading-none">{t.signals.addNoteDesc}</span>
         </Button>
       </div>
 
@@ -325,8 +328,8 @@ export function SignalButtons({
       >
         <CircleStopIcon className="w-5 h-5 flex-none" />
         <div className="text-left">
-          <p className="text-sm font-bold leading-none">End Refinement</p>
-          <p className="text-[10px] font-normal opacity-55 leading-none mt-0.5">finalize &amp; save batch report</p>
+          <p className="text-sm font-bold leading-none">{t.signals.endRefinement}</p>
+          <p className="text-[10px] font-normal opacity-55 leading-none mt-0.5">{t.signals.endRefinementDesc}</p>
         </div>
       </Button>
 
