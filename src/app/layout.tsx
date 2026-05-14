@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { LanguageProvider } from "@/i18n/context";
+import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,6 +19,14 @@ export const metadata: Metadata = {
   description:
     "Mobile-first shop floor tracker for bean-to-bar chocolate batch refinement. Monitor your melanger in real time.",
   keywords: ["chocolate", "refinement", "melanger", "bean-to-bar", "tracking"],
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "ChocLab",
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
@@ -38,7 +47,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen choc-gradient`}
       >
-        <LanguageProvider>{children}</LanguageProvider>
+        <LanguageProvider>
+          <ServiceWorkerRegistrar />
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

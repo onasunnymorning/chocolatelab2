@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { StartBatchModal } from "@/components/StartBatchModal";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { Button } from "@/components/ui/button";
 import {
   PlusIcon,
@@ -220,6 +221,7 @@ export default function DashboardPage() {
       </main>
 
       <StartBatchModal open={showModal} onOpenChange={setShowModal} />
+      <InstallPrompt />
     </div>
   );
 }
