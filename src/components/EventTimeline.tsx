@@ -13,6 +13,16 @@ const EVENT_CONFIG = {
     dotColor: "bg-amber-400",
     glowColor: "oklch(0.82 0.16 78 / 25%)",
   },
+  SAMPLE_TAKEN: {
+    label: "Sample Taken",
+    color: "text-sky-400",
+    bg: "bg-sky-400/15",
+    border: "border-sky-400/30",
+    chipBg: "bg-sky-400/20",
+    chipText: "text-sky-300",
+    dotColor: "bg-sky-400",
+    glowColor: "oklch(0.75 0.18 220 / 25%)",
+  },
   NOTE_ADDED: {
     label: "Note",
     color: "text-violet-400",
@@ -50,6 +60,9 @@ function buildBody(event: RefinementEvent): string {
     const name = titleCase(event.payload.name ?? "Ingredient");
     const amount = event.payload.amount ?? "";
     return `${amount}g of ${name} added`;
+  }
+  if (event.type === "SAMPLE_TAKEN") {
+    return "Sample taken for tasting";
   }
   if (event.type === "NOTE_ADDED") {
     return event.payload.note ?? "";
