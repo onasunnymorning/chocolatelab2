@@ -18,6 +18,7 @@ import {
   CircleStopIcon,
   Loader2Icon,
 } from "lucide-react";
+import { CacaoPodIcon } from "@/components/CacaoPodIcon";
 import { useLanguage } from "@/i18n/context";
 
 interface SignalButtonsProps {
@@ -125,7 +126,7 @@ function IngredientModal({
             onChange={(e) => setIsCacao(e.target.checked)}
             className="sr-only"
           />
-          <span className="text-xl">{isCacao ? "🍫" : "○"}</span>
+          {isCacao ? <CacaoPodIcon size={22} /> : <span className="text-xl opacity-50">○</span>}
           <div>
             <p className="text-sm font-semibold leading-none">
               {isCacao ? t.signals.isCacaoActive : t.signals.isCacaoInactive}

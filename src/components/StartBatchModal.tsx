@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlusIcon, TrashIcon } from "lucide-react";
+import { CacaoPodIcon } from "@/components/CacaoPodIcon";
 import { useLanguage } from "@/i18n/context";
 
 interface Ingredient {
@@ -179,7 +180,7 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
                       onChange={(e) => updateIngredient(i, "isCacao", e.target.checked)}
                       className="sr-only"
                     />
-                    <span className="text-base">{ing.isCacao ? "🍫" : "○"}</span>
+                    {ing.isCacao ? <CacaoPodIcon size={18} /> : <span className="opacity-50">○</span>}
                     {t.startBatch.cacaoLabel}
                   </label>
                   {ingredients.length > 1 && (
