@@ -1,10 +1,16 @@
 "use client";
 
 import type { RefinementEvent } from "@/temporal/types";
+import { useLanguage } from "@/i18n/context";
 
-const EVENT_CONFIG = {
+const EVENT_TYPE_KEYS = {
+  INGREDIENT_ADDED: "ingredientAdded",
+  SAMPLE_TAKEN: "sampleTaken",
+  NOTE_ADDED: "noteAdded",
+} as const;
+
+const EVENT_STYLE = {
   INGREDIENT_ADDED: {
-    label: "Ingredient Added",
     color: "text-amber-400",
     bg: "bg-amber-400/15",
     border: "border-amber-400/30",
@@ -14,7 +20,6 @@ const EVENT_CONFIG = {
     glowColor: "oklch(0.82 0.16 78 / 25%)",
   },
   SAMPLE_TAKEN: {
-    label: "Sample Taken",
     color: "text-sky-400",
     bg: "bg-sky-400/15",
     border: "border-sky-400/30",
@@ -24,7 +29,6 @@ const EVENT_CONFIG = {
     glowColor: "oklch(0.75 0.18 220 / 25%)",
   },
   NOTE_ADDED: {
-    label: "Note",
     color: "text-violet-400",
     bg: "bg-violet-400/15",
     border: "border-violet-400/30",
@@ -42,32 +46,9 @@ function formatTime(iso: string) {
   });
 }
 
-function relativeTime(iso: string): string {
-  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return new Date(iso).toLocaleDateString([], { month: "short", day: "numeric" });
-}
-
 /** Turn "butter" → "Butter", "cocoa nibs" → "Cocoa Nibs" */
 function titleCase(str: string) {
   return str.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1));
-}
-
-function buildBody(event: RefinementEvent): string {
-  if (event.type === "INGREDIENT_ADDED") {
-    const name = titleCase(event.payload.name ?? "Ingredient");
-    const amount = event.payload.amount ?? "";
-    return `${amount}g of ${name} added`;
-  }
-  if (event.type === "SAMPLE_TAKEN") {
-    return "Sample taken for tasting";
-  }
-  if (event.type === "NOTE_ADDED") {
-    return event.payload.note ?? "";
-  }
-  return "";
 }
 
 function EventCard({
@@ -81,29 +62,50 @@ function EventCard({
   isNewest: boolean;
   index: number;
 }) {
-  const config = EVENT_CONFIG[event.type];
-  const body = buildBody(event);
+  const { t } = useLanguage();
+  const style = EVENT_STYLE[event.type];
+  const labelKey = EVENT_TYPE_KEYS[event.type];
+  const label = t.timeline[labelKey];
   const isCacao = event.type === "INGREDIENT_ADDED" && event.payload.isCacao === "true";
+
+  // Build the human-readable body using dictionary functions
+  let body = "";
+  if (event.type === "INGREDIENT_ADDED") {
+    const name = titleCase(event.payload.name ?? "Ingredient");
+    const amount = event.payload.amount ?? "";
+    body = t.timeline.ingredientBody(amount, name);
+  } else if (event.type === "SAMPLE_TAKEN") {
+    body = t.timeline.sampleBody;
+  } else if (event.type === "NOTE_ADDED") {
+    body = event.payload.note ?? "";
+  }
+
+  // Relative time using dictionary strings
+  const relativeTime = (() => {
+    const diff = Math.floor((Date.now() - new Date(event.timestamp).getTime()) / 1000);
+    if (diff < 60) return t.timeline.justNow;
+    if (diff < 3600) return t.timeline.minutesAgo(Math.floor(diff / 60));
+    if (diff < 86400) return t.timeline.hoursAgo(Math.floor(diff / 3600));
+    return new Date(event.timestamp).toLocaleDateString([], { month: "short", day: "numeric" });
+  })();
 
   return (
     <div
       className={`event-card-enter relative flex gap-4 ${!isLast ? "timeline-line pb-8" : "pb-2"}`}
       style={{ animationDelay: `${index * 60}ms` }}
     >
-      {/* Dot node — no icon */}
+      {/* Dot node */}
       <div
-        className={`relative z-10 flex-none w-3 h-3 mt-1.5 rounded-full ${config.dotColor} ${isNewest ? "node-glow" : ""}`}
-        style={isNewest ? { boxShadow: `0 0 0 0 ${config.glowColor}` } : undefined}
+        className={`relative z-10 flex-none w-3 h-3 mt-1.5 rounded-full ${style.dotColor} ${isNewest ? "node-glow" : ""}`}
+        style={isNewest ? { boxShadow: `0 0 0 0 ${style.glowColor}` } : undefined}
       />
 
       {/* Content */}
       <div className="flex-1 min-w-0">
         {/* Time row */}
         <div className="flex items-center justify-between gap-2 mb-1">
-          <span
-            className={`text-[10px] font-bold uppercase tracking-widest ${config.chipText}`}
-          >
-            {config.label}
+          <span className={`text-[10px] font-bold uppercase tracking-widest ${style.chipText}`}>
+            {label}
           </span>
           <span className="text-[10px] text-muted-foreground/50 font-mono tabular-nums whitespace-nowrap">
             {formatTime(event.timestamp)}
@@ -118,13 +120,13 @@ function EventCard({
         {/* isCacao tag — only when true */}
         {isCacao && (
           <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300">
-            cacao
+            {t.timeline.cacaoTag}
           </span>
         )}
 
         {/* Relative time */}
         <p className="mt-1 text-[10px] text-muted-foreground/40 font-mono">
-          {relativeTime(event.timestamp)}
+          {relativeTime}
         </p>
       </div>
     </div>
@@ -138,12 +140,14 @@ interface EventTimelineProps {
 }
 
 export function EventTimeline({ events, isEnded, endTime }: EventTimelineProps) {
+  const { t } = useLanguage();
+
   if (events.length === 0 && !isEnded) {
     return (
       <div className="text-center py-10 text-muted-foreground text-sm">
         <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-muted/20 opacity-40" />
-        <p className="font-medium">No events yet</p>
-        <p className="text-xs mt-1 opacity-60">Use the actions below to log activity.</p>
+        <p className="font-medium">{t.timeline.noEventsYet}</p>
+        <p className="text-xs mt-1 opacity-60">{t.timeline.noEventsHint}</p>
       </div>
     );
   }
@@ -162,14 +166,17 @@ export function EventTimeline({ events, isEnded, endTime }: EventTimelineProps) 
 
       {/* Completion marker */}
       {isEnded && (
-        <div className="event-card-enter relative flex gap-4 pb-2" style={{ animationDelay: `${events.length * 60}ms` }}>
+        <div
+          className="event-card-enter relative flex gap-4 pb-2"
+          style={{ animationDelay: `${events.length * 60}ms` }}
+        >
           {/* Green terminal dot */}
           <div className="relative z-10 flex-none w-3 h-3 mt-1.5 rounded-full bg-green-400 ring-2 ring-green-400/30" />
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2 mb-1">
               <span className="text-[10px] font-bold uppercase tracking-widest text-green-400">
-                Refinement Complete
+                {t.timeline.refinementComplete}
               </span>
               {endTime && (
                 <span className="text-[10px] text-muted-foreground/50 font-mono tabular-nums whitespace-nowrap">
@@ -178,7 +185,7 @@ export function EventTimeline({ events, isEnded, endTime }: EventTimelineProps) 
               )}
             </div>
             <p className="text-base font-semibold text-green-400/80 leading-snug">
-              Batch closed
+              {t.timeline.batchClosed}
             </p>
             {endTime && (
               <p className="mt-1 text-[10px] text-muted-foreground/40 font-mono">

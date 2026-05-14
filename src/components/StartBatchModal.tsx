@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlusIcon, TrashIcon } from "lucide-react";
+import { useLanguage } from "@/i18n/context";
 
 interface Ingredient {
   name: string;
@@ -27,6 +28,7 @@ interface StartBatchModalProps {
 
 export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { name: "", amount: "", isCacao: false },
@@ -70,7 +72,7 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
     setError(null);
 
     if (!name.trim()) {
-      setError("Batch name is required.");
+      setError(t.startBatch.errorNameRequired);
       return;
     }
 
@@ -89,7 +91,7 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error ?? "Failed to start batch");
+        throw new Error(data.error ?? t.startBatch.errorStartFailed);
       }
 
       const { workflowId } = await res.json();
@@ -109,15 +111,15 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
       <DialogContent className="bg-card border-border/50 max-w-lg mx-4 rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-            Start New Batch
+            {t.startBatch.title}
             {cacaoPct !== null && (
               <span className="ml-2 text-sm font-normal px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-300 border border-amber-400/30">
-                {cacaoPct}% cacao
+                {cacaoPct}{t.startBatch.descriptionSuffix}
               </span>
             )}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Fill in the details to begin a new refinement run.
+            {t.startBatch.description}
           </DialogDescription>
         </DialogHeader>
 
@@ -125,11 +127,11 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
           {/* Batch Name */}
           <div className="space-y-2">
             <Label htmlFor="batch-name" className="text-sm font-semibold">
-              Batch Name
+              {t.startBatch.batchNameLabel}
             </Label>
             <Input
               id="batch-name"
-              placeholder="e.g. Ghana 72% Dark — Run 14"
+              placeholder={t.startBatch.batchNamePlaceholder}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="h-14 text-base bg-secondary/50 border-border/60 rounded-xl"
@@ -139,18 +141,18 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
           {/* Initial Ingredients */}
           <div className="space-y-3">
             <Label className="text-sm font-semibold">
-              Initial Ingredients
+              {t.startBatch.ingredientsLabel}
             </Label>
             {ingredients.map((ing, i) => (
               <div key={i} className="flex gap-2 items-center">
                 <Input
-                  placeholder="Ingredient name"
+                  placeholder={t.startBatch.ingredientNamePlaceholder}
                   value={ing.name}
                   onChange={(e) => updateIngredient(i, "name", e.target.value)}
                   className="h-12 flex-1 bg-secondary/50 border-border/60 rounded-xl text-sm"
                 />
                 <Input
-                  placeholder="grams"
+                  placeholder={t.startBatch.gramsPlaceholder}
                   type="number"
                   min="0"
                   step="any"
@@ -175,7 +177,7 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
                     className="sr-only"
                   />
                   <span className="text-base">{ing.isCacao ? "🍫" : "○"}</span>
-                  Cacao
+                  {t.startBatch.cacaoLabel}
                 </label>
                 {ingredients.length > 1 && (
                   <button
@@ -195,7 +197,7 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
               className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors font-medium"
             >
               <PlusIcon className="w-4 h-4" />
-              Add ingredient
+              {t.startBatch.addIngredient}
             </button>
           </div>
 
@@ -211,7 +213,7 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
             id="start-batch-submit"
             className="w-full h-14 text-base font-bold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 amber-glow transition-all"
           >
-            {loading ? "Starting…" : "Start Refinement ›"}
+            {loading ? t.startBatch.submitLoading : t.startBatch.submitLabel}
           </Button>
         </form>
       </DialogContent>

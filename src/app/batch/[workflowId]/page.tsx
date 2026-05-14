@@ -6,8 +6,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { EventTimeline } from "@/components/EventTimeline";
 import { SignalButtons } from "@/components/SignalButtons";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Badge } from "@/components/ui/badge";
 import type { RefinementState } from "@/temporal/types";
+import { useLanguage } from "@/i18n/context";
 import {
   ArrowLeftIcon,
   ClockIcon,
@@ -42,6 +44,7 @@ function ElapsedTimer({ startTime }: { startTime: string }) {
 export default function BatchPage() {
   const { workflowId } = useParams<{ workflowId: string }>();
   const router = useRouter();
+  const { t } = useLanguage();
 
   const [state, setState] = useState<RefinementState | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -100,7 +103,7 @@ export default function BatchPage() {
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="text-destructive font-semibold">{error}</p>
         <Link href="/" className="text-sm text-primary underline">
-          Back to dashboard
+          {t.batch.backToDashboard}
         </Link>
       </div>
     );
@@ -116,7 +119,7 @@ export default function BatchPage() {
           <Link
             href="/"
             className="p-1.5 -ml-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
-            aria-label="Back"
+            aria-label={t.batch.backLabel}
           >
             <ArrowLeftIcon className="w-5 h-5" />
           </Link>
@@ -138,28 +141,29 @@ export default function BatchPage() {
                   variant="secondary"
                   className="text-xs bg-amber-400/15 text-amber-300 border-amber-400/30 px-2 py-0"
                 >
-                  {state.cacaoPercentage}% cacao
+                  {state.cacaoPercentage}{t.batch.cacaoSuffix}
                 </Badge>
               )}
               {state.isEnded ? (
                 <span className="flex items-center gap-1 text-xs text-green-400">
                   <CheckCircle2Icon className="w-3.5 h-3.5" />
-                  Completed
+                  {t.batch.statusCompleted}
                 </span>
               ) : (
                 <span className="flex items-center gap-1.5 text-xs text-amber-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400 live-pulse" />
-                  Refining
+                  {t.batch.statusRefining}
                 </span>
               )}
             </div>
           </div>
-          {/* Timer in header — always visible */}
-          {!state.isEnded && (
-            <div className="flex-none">
+          {/* Timer + language switcher in header */}
+          <div className="flex items-center gap-2 flex-none">
+            {!state.isEnded && (
               <ElapsedTimer startTime={state.startTime} />
-            </div>
-          )}
+            )}
+            <LanguageSwitcher />
+          </div>
         </div>
       </header>
 
@@ -168,10 +172,10 @@ export default function BatchPage() {
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-              Event Log
+              {t.batch.eventLog}
             </h2>
             <span className="text-xs text-muted-foreground">
-              {state.events.length} event{state.events.length !== 1 ? "s" : ""}
+              {t.batch.eventCount(state.events.length)}
             </span>
           </div>
           <div className="choc-card-glow bg-card rounded-2xl p-4 border border-border/40">
@@ -194,7 +198,7 @@ export default function BatchPage() {
         <div className="fixed bottom-0 left-0 right-0 z-20 bg-background/90 backdrop-blur-lg border-t border-border/30 safe-bottom">
           <div className="max-w-2xl mx-auto px-4 pt-3">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2 text-center">
-              Log Activity
+              {t.batch.logActivity}
             </p>
             <SignalButtons
               workflowId={workflowId}
