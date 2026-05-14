@@ -29,10 +29,8 @@ export const batches = pgTable("batches", {
   name: text("name").notNull(),
   startTime: timestamp("start_time", { withTimezone: true }).notNull(),
   endTime: timestamp("end_time", { withTimezone: true }),
-  cacaoPercentage: numeric("cacao_percentage", {
-    precision: 5,
-    scale: 2,
-  }).notNull(),
+  /** Computed from ingredient events at workflow end: cacaoGrams / totalGrams * 100 */
+  cacaoPercentage: numeric("cacao_percentage", { precision: 5, scale: 2 }),
   status: batchStatusEnum("status").notNull().default("IN_PROGRESS"),
 });
 

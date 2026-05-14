@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { EventTimeline } from "@/components/EventTimeline";
 import { SignalButtons } from "@/components/SignalButtons";
 import { Badge } from "@/components/ui/badge";
@@ -114,22 +115,32 @@ export default function BatchPage() {
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
           <Link
             href="/"
-            className="p-2 -ml-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+            className="p-1.5 -ml-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
             aria-label="Back"
           >
             <ArrowLeftIcon className="w-5 h-5" />
           </Link>
+          <Image
+            src="/logo-mark.png"
+            alt="De Prins"
+            width={28}
+            height={32}
+            priority
+            className="flex-none opacity-80"
+          />
           <div className="flex-1 min-w-0">
             <h1 className="font-bold text-base text-foreground truncate">
               {state.name}
             </h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <Badge
-                variant="secondary"
-                className="text-xs bg-amber-400/15 text-amber-300 border-amber-400/30 px-2 py-0"
-              >
-                {state.cacaoPercentage}%
-              </Badge>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              {state.cacaoPercentage != null && (
+                <Badge
+                  variant="secondary"
+                  className="text-xs bg-amber-400/15 text-amber-300 border-amber-400/30 px-2 py-0"
+                >
+                  {state.cacaoPercentage}% cacao
+                </Badge>
+              )}
               {state.isEnded ? (
                 <span className="flex items-center gap-1 text-xs text-green-400">
                   <CheckCircle2Icon className="w-3.5 h-3.5" />
@@ -143,19 +154,16 @@ export default function BatchPage() {
               )}
             </div>
           </div>
+          {/* Timer in header — always visible */}
+          {!state.isEnded && (
+            <div className="flex-none">
+              <ElapsedTimer startTime={state.startTime} />
+            </div>
+          )}
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 pt-5 space-y-6">
-        {/* Timer */}
-        {!state.isEnded && <ElapsedTimer startTime={state.startTime} />}
-
-        {state.isEnded && (
-          <div className="rounded-2xl bg-green-500/10 border border-green-500/30 px-4 py-4 text-center text-sm text-green-300 font-medium">
-            ✅ Refinement complete! Saving report and redirecting…
-          </div>
-        )}
-
+      <main className="max-w-2xl mx-auto px-4 pt-5 space-y-6 pb-[200px]">
         {/* Timeline */}
         <section>
           <div className="flex items-center justify-between mb-3">
@@ -167,29 +175,35 @@ export default function BatchPage() {
             </span>
           </div>
           <div className="choc-card-glow bg-card rounded-2xl p-4 border border-border/40">
-            <EventTimeline events={state.events} />
+            <EventTimeline
+              events={state.events}
+              isEnded={state.isEnded}
+              endTime={state.endTime ?? null}
+            />
           </div>
         </section>
-
-        {/* Signal buttons — only show if still active */}
-        {!state.isEnded && (
-          <section>
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              Log Activity
-            </h2>
-            <SignalButtons
-              workflowId={workflowId}
-              onSignalSent={fetchState}
-              onEnded={handleEnded}
-            />
-          </section>
-        )}
 
         {/* Workflow ID footer */}
         <p className="text-center text-xs text-muted-foreground/50 font-mono break-all">
           {workflowId}
         </p>
       </main>
+
+      {/* Sticky action bar — always thumb-reachable */}
+      {!state.isEnded && (
+        <div className="fixed bottom-0 left-0 right-0 z-20 bg-background/90 backdrop-blur-lg border-t border-border/30 safe-bottom">
+          <div className="max-w-2xl mx-auto px-4 pt-3">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2 text-center">
+              Log Activity
+            </p>
+            <SignalButtons
+              workflowId={workflowId}
+              onSignalSent={fetchState}
+              onEnded={handleEnded}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

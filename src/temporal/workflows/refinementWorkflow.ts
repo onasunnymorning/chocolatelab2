@@ -38,6 +38,25 @@ const { saveRefinementReport } = proxyActivities<Activities>({
   },
 });
 
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+/** Derive cacao % from all INGREDIENT_ADDED events in the log. */
+function computeCacaoPercentage(events: RefinementEvent[]): number | null {
+  let totalGrams = 0;
+  let cacaoGrams = 0;
+
+  for (const e of events) {
+    if (e.type !== "INGREDIENT_ADDED") continue;
+    const grams = parseFloat(e.payload.amount ?? "0");
+    if (isNaN(grams) || grams <= 0) continue;
+    totalGrams += grams;
+    if (e.payload.isCacao === "true") cacaoGrams += grams;
+  }
+
+  if (totalGrams === 0) return null;
+  return Math.round((cacaoGrams / totalGrams) * 10000) / 100; // 2 dp
+}
+
 // ─── Workflow ──────────────────────────────────────────────────────────────
 
 export async function refinementWorkflow(
@@ -52,17 +71,21 @@ export async function refinementWorkflow(
   for (const ingredient of input.initialIngredients) {
     events.push({
       type: "INGREDIENT_ADDED",
-      payload: { name: ingredient.name, amount: ingredient.amount },
+      payload: {
+        name: ingredient.name,
+        amount: ingredient.amount,
+        isCacao: String(ingredient.isCacao),
+      },
       timestamp: input.startTime,
     });
   }
 
   // ── Signal Handlers ──────────────────────────────────────────────────────
 
-  setHandler(addIngredientSignal, ({ name, amount }: AddIngredientPayload) => {
+  setHandler(addIngredientSignal, ({ name, amount, isCacao }: AddIngredientPayload) => {
     events.push({
       type: "INGREDIENT_ADDED",
-      payload: { name, amount },
+      payload: { name, amount, isCacao: String(isCacao) },
       timestamp: new Date().toISOString(),
     });
   });
@@ -92,7 +115,7 @@ export async function refinementWorkflow(
   setHandler(getRefinementStateQuery, (): RefinementState => ({
     workflowId,
     name: input.name,
-    cacaoPercentage: input.cacaoPercentage,
+    cacaoPercentage: computeCacaoPercentage(events),
     startTime: input.startTime,
     events: [...events],
     isEnded,
@@ -109,7 +132,7 @@ export async function refinementWorkflow(
     name: input.name,
     startTime: input.startTime,
     endTime: new Date().toISOString(),
-    cacaoPercentage: input.cacaoPercentage,
+    cacaoPercentage: computeCacaoPercentage(events),
     events,
   });
 }

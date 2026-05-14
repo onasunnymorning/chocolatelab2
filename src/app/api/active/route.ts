@@ -1,36 +1,32 @@
 import { NextResponse } from "next/server";
-import { getTemporalClient } from "@/temporal/client";
-import { WorkflowExecutionStatusName } from "@temporalio/client";
+import { db } from "@/db";
+import { batches } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
-// GET /api/active — list all running refinement workflows from Temporal
+// GET /api/active — list all IN_PROGRESS batches from the DB
 export async function GET() {
   try {
-    const client = await getTemporalClient();
-    const namespace = process.env.TEMPORAL_NAMESPACE ?? "default";
+    const active = await db
+      .select({
+        workflowId: batches.workflowId,
+        name: batches.name,
+        startTime: batches.startTime,
+      })
+      .from(batches)
+      .where(eq(batches.status, "IN_PROGRESS"));
 
-    const activeBatches: {
-      workflowId: string;
-      runId: string;
-      startTime: Date | null;
-    }[] = [];
-
-    const handle = client.workflow.list({
-      query: `WorkflowType = "refinementWorkflow" AND ExecutionStatus = "Running"`,
+    return NextResponse.json({
+      batches: active.map((b) => ({
+        workflowId: b.workflowId,
+        name: b.name,
+        runId: b.workflowId,
+        startTime: b.startTime?.toISOString() ?? null,
+      })),
     });
-
-    for await (const workflow of handle) {
-      activeBatches.push({
-        workflowId: workflow.workflowId,
-        runId: workflow.runId,
-        startTime: workflow.startTime ?? null,
-      });
-    }
-
-    return NextResponse.json({ batches: activeBatches });
   } catch (err) {
     console.error("GET /api/active error:", err);
     return NextResponse.json(
-      { error: "Failed to list active workflows" },
+      { error: "Failed to list active batches" },
       { status: 500 }
     );
   }

@@ -2,20 +2,19 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { StartBatchModal } from "@/components/StartBatchModal";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   PlusIcon,
   ChevronRightIcon,
-  ClockIcon,
-  CheckCircle2Icon,
   Loader2Icon,
 } from "lucide-react";
 import type { Batch } from "@/db/schema";
 
 interface ActiveWorkflow {
   workflowId: string;
+  name: string;
   runId: string;
   startTime: string | null;
 }
@@ -42,23 +41,17 @@ function ElapsedTime({ startTime }: { startTime: string | null }) {
 function ActiveBatchCard({ batch }: { batch: ActiveWorkflow }) {
   return (
     <Link href={`/batch/${batch.workflowId}`}>
-      <div className="group choc-card-glow bg-card rounded-2xl p-4 flex items-center gap-4 hover:bg-card/80 transition-all active:scale-[0.98] cursor-pointer border border-border/40">
-        {/* Live indicator */}
-        <div className="w-3 h-3 rounded-full bg-amber-400 live-pulse flex-none" />
-
+      <div className="group choc-card-glow bg-card rounded-2xl px-5 py-5 flex items-center gap-4 border border-amber-400/20 hover:bg-card/80 transition-all active:scale-[0.98] cursor-pointer min-h-[96px]">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-mono text-muted-foreground truncate">
-            {batch.workflowId}
+          <p className="text-4xl font-black text-foreground leading-none truncate tracking-tight">
+            {batch.name}
           </p>
-          <div className="flex items-center gap-2 mt-1">
-            <ClockIcon className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">
-              <ElapsedTime startTime={batch.startTime} />
-            </span>
-          </div>
+          <p className="text-xs text-amber-400/70 mt-2.5 flex items-center gap-1.5 font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 live-pulse inline-block" />
+            <ElapsedTime startTime={batch.startTime} />
+          </p>
         </div>
-
-        <ChevronRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors flex-none" />
+        <ChevronRightIcon className="w-5 h-5 text-muted-foreground/40 group-hover:text-primary transition-colors flex-none" />
       </div>
     </Link>
   );
@@ -78,35 +71,30 @@ function CompletedBatchCard({ batch }: { batch: Batch }) {
       : null;
 
   return (
-    <div className="choc-card-glow bg-card rounded-2xl p-4 flex items-center gap-4 border border-border/40">
-      <CheckCircle2Icon className="w-5 h-5 text-green-500 flex-none" />
-
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-foreground truncate">{batch.name}</p>
-        <div className="flex items-center gap-3 mt-1">
-          <Badge
-            variant="secondary"
-            className="text-xs bg-amber-400/15 text-amber-300 border-amber-400/30"
-          >
-            {batch.cacaoPercentage}%
-          </Badge>
-          {duration && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <ClockIcon className="w-3 h-3" />
-              {duration}
-            </span>
-          )}
-          {batch.endTime && (
-            <span className="text-xs text-muted-foreground">
-              {new Date(batch.endTime).toLocaleDateString([], {
-                month: "short",
-                day: "numeric",
-              })}
-            </span>
-          )}
+    <Link href={`/batch/${batch.workflowId}`}>
+      <div className="group choc-card-glow bg-card rounded-2xl px-5 py-5 flex items-center gap-4 border border-border/40 hover:bg-card/80 transition-all active:scale-[0.98] cursor-pointer min-h-[96px]">
+        <div className="flex-1 min-w-0">
+          <p className="text-4xl font-black text-foreground leading-none truncate tracking-tight">
+            {batch.name}
+          </p>
+          <p className="text-xs text-muted-foreground/60 mt-2.5 font-mono">
+            {[batch.endTime && new Date(batch.endTime).toLocaleDateString([], { month: "short", day: "numeric" }), duration]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
         </div>
+
+        {batch.cacaoPercentage != null && (
+          <div className="flex-none text-right">
+            <p className="text-2xl font-black text-amber-400 leading-none tabular-nums">
+              {batch.cacaoPercentage}%
+            </p>
+          </div>
+        )}
+
+        <ChevronRightIcon className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors flex-none" />
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -143,17 +131,30 @@ export default function DashboardPage() {
     <div className="min-h-screen fade-up">
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-border/30 bg-background/80 backdrop-blur-md">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-foreground">
-              🍫 Chocolate Lab
-            </h1>
-            <p className="text-xs text-muted-foreground">Refinement Tracker</p>
+        <div className="max-w-2xl mx-auto px-4 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Image
+              src="/logo-mark.png"
+              alt="De Prins logo"
+              width={36}
+              height={52}
+              priority
+              className="flex-none brightness-0 invert opacity-90"
+              style={{ objectFit: "contain" }}
+            />
+            <div>
+              <h1 className="text-lg font-semibold tracking-tight text-foreground leading-none">
+                Chocolate Lab
+              </h1>
+              <p className="text-[11px] tracking-widest uppercase text-muted-foreground/70 mt-0.5">
+                Refinement Tracker
+              </p>
+            </div>
           </div>
           <Button
             id="open-start-modal"
             onClick={() => setShowModal(true)}
-            className="h-11 px-4 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 amber-glow transition-all flex items-center gap-2"
+            className="h-10 px-4 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 amber-glow transition-all flex items-center gap-2"
           >
             <PlusIcon className="w-4 h-4" />
             New Batch

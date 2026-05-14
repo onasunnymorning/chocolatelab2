@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTemporalClient, TASK_QUEUE } from "@/temporal/client";
 import { db } from "@/db";
-import { batches } from "@/db/schema";
+import { batches, batchEvents } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
-import { refinementWorkflow } from "@/temporal/workflows/refinementWorkflow";
-import type { RefinementInput } from "@/temporal/types";
 import { v4 as uuidv4 } from "uuid";
 
 // GET /api/batches — list completed batches from Postgres
@@ -14,7 +11,7 @@ export async function GET() {
       .select()
       .from(batches)
       .where(eq(batches.status, "COMPLETED"))
-      .orderBy(desc(batches.endTime));
+      .orderBy(desc(batches.startTime));
 
     return NextResponse.json({ batches: completed });
   } catch (err) {
@@ -26,50 +23,54 @@ export async function GET() {
   }
 }
 
-// POST /api/batches — start a new refinement workflow
+// POST /api/batches — create a new refinement batch + seed initial ingredient events
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, cacaoPercentage, initialIngredients } = body;
+    const { name, initialIngredients } = body as {
+      name: string;
+      initialIngredients?: { name: string; amount: string; isCacao: boolean }[];
+    };
 
-    if (!name || !cacaoPercentage) {
-      return NextResponse.json(
-        { error: "name and cacaoPercentage are required" },
-        { status: 400 }
-      );
+    if (!name) {
+      return NextResponse.json({ error: "name is required" }, { status: 400 });
     }
 
     const workflowId = `refinement-${uuidv4()}`;
-    const startTime = new Date().toISOString();
+    const startTime = new Date();
 
-    const input: RefinementInput = {
-      name,
-      startTime,
-      initialIngredients: initialIngredients ?? [],
-      cacaoPercentage: parseFloat(cacaoPercentage),
-    };
+    // Insert batch row
+    const [batch] = await db
+      .insert(batches)
+      .values({
+        workflowId,
+        name,
+        startTime,
+        status: "IN_PROGRESS",
+      })
+      .returning();
 
-    // Pre-create the batch record in Postgres so dashboard can show it immediately
-    await db.insert(batches).values({
-      workflowId,
-      name,
-      startTime: new Date(startTime),
-      cacaoPercentage: cacaoPercentage.toString(),
-      status: "IN_PROGRESS",
-    });
-
-    const client = await getTemporalClient();
-    await client.workflow.start(refinementWorkflow, {
-      taskQueue: TASK_QUEUE,
-      workflowId,
-      args: [input],
-    });
+    // Seed initial ingredient events
+    if (initialIngredients && initialIngredients.length > 0) {
+      await db.insert(batchEvents).values(
+        initialIngredients.map((ing) => ({
+          batchId: batch.id,
+          eventType: "INGREDIENT_ADDED" as const,
+          payload: {
+            name: ing.name,
+            amount: String(ing.amount),
+            isCacao: String(ing.isCacao),
+          },
+          timestamp: startTime,
+        }))
+      );
+    }
 
     return NextResponse.json({ workflowId }, { status: 201 });
   } catch (err) {
     console.error("POST /api/batches error:", err);
     return NextResponse.json(
-      { error: "Failed to start batch workflow" },
+      { error: "Failed to create batch" },
       { status: 500 }
     );
   }

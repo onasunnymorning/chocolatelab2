@@ -1,0 +1,1 @@
+ALTER TABLE "batches" ADD COLUMN "cacao_percentage" numeric(5, 2);

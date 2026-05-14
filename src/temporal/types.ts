@@ -3,7 +3,8 @@
 
 export interface RefinementIngredient {
   name: string;
-  amount: string;
+  amount: string; // numeric grams, e.g. "1200"
+  isCacao: boolean;
 }
 
 export interface RefinementEvent {
@@ -16,14 +17,15 @@ export interface RefinementInput {
   name: string;
   startTime: string; // ISO string
   initialIngredients: RefinementIngredient[];
-  cacaoPercentage: number;
 }
 
 export interface RefinementState {
   workflowId: string;
   name: string;
-  cacaoPercentage: number;
+  /** Computed from INGREDIENT_ADDED events with isCacao=true */
+  cacaoPercentage: number | null;
   startTime: string;
+  endTime?: string | null;
   events: RefinementEvent[];
   isEnded: boolean;
 }
@@ -37,6 +39,7 @@ export type SignalType =
 export interface AddIngredientPayload {
   name: string;
   amount: string;
+  isCacao: boolean;
 }
 
 export interface TakeSamplePayload {

@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import type { SignalType } from "@/temporal/types";
 import {
   PackageIcon,
-  BeakerIcon,
   StickyNoteIcon,
   CircleStopIcon,
   Loader2Icon,
@@ -26,7 +25,7 @@ interface SignalButtonsProps {
   onEnded?: () => void;
 }
 
-type ModalType = "ingredient" | "sample" | "note" | "end" | null;
+type ModalType = "ingredient" | "note" | "end" | null;
 
 async function sendSignal(
   workflowId: string,
@@ -57,6 +56,7 @@ function IngredientModal({
 }) {
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
+  const [isCacao, setIsCacao] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,6 +70,7 @@ function IngredientModal({
       await sendSignal(workflowId, "addIngredientSignal", {
         name: name.trim(),
         amount: amount.trim(),
+        isCacao: String(isCacao),
       });
       onSuccess();
       onClose();
@@ -106,6 +107,32 @@ function IngredientModal({
             className="h-14 text-base bg-secondary/50 border-border/60 rounded-xl"
           />
         </div>
+        {/* isCacao toggle */}
+        <label
+          htmlFor="signal-is-cacao"
+          className={`flex items-center gap-3 h-14 px-4 rounded-xl border cursor-pointer select-none transition-colors ${
+            isCacao
+              ? "bg-amber-400/20 border-amber-400/50 text-amber-300"
+              : "bg-secondary/30 border-border/40 text-muted-foreground hover:border-border/70"
+          }`}
+        >
+          <input
+            id="signal-is-cacao"
+            type="checkbox"
+            checked={isCacao}
+            onChange={(e) => setIsCacao(e.target.checked)}
+            className="sr-only"
+          />
+          <span className="text-xl">{isCacao ? "🍫" : "○"}</span>
+          <div>
+            <p className="text-sm font-semibold leading-none">
+              {isCacao ? "Cacao ingredient" : "Mark as cacao"}
+            </p>
+            <p className="text-xs opacity-60 mt-0.5">
+              Counts toward cacao % calculation
+            </p>
+          </div>
+        </label>
         {error && (
           <p className="text-sm text-destructive bg-destructive/10 rounded-xl px-4 py-3">
             {error}
@@ -118,73 +145,6 @@ function IngredientModal({
           className="w-full h-14 rounded-xl bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold text-base"
         >
           {loading ? <Loader2Icon className="animate-spin" /> : "Log Ingredient"}
-        </Button>
-      </div>
-    </>
-  );
-}
-
-function SampleModal({
-  workflowId,
-  onClose,
-  onSuccess,
-}: {
-  workflowId: string;
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  const [observation, setObservation] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const submit = async () => {
-    if (!observation.trim()) {
-      setError("Observation is required.");
-      return;
-    }
-    setLoading(true);
-    try {
-      await sendSignal(workflowId, "takeSampleSignal", {
-        observation: observation.trim(),
-      });
-      onSuccess();
-      onClose();
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <>
-      <DialogHeader>
-        <DialogTitle className="text-sky-400 flex items-center gap-2 text-lg">
-          <BeakerIcon className="w-5 h-5" /> Take Sample
-        </DialogTitle>
-      </DialogHeader>
-      <div className="space-y-4 pt-2">
-        <div className="space-y-2">
-          <Label>Observation</Label>
-          <Textarea
-            placeholder="Texture feels smooth, slight bitterness, temperature 45°C…"
-            value={observation}
-            onChange={(e) => setObservation(e.target.value)}
-            className="min-h-[120px] text-base bg-secondary/50 border-border/60 rounded-xl resize-none"
-          />
-        </div>
-        {error && (
-          <p className="text-sm text-destructive bg-destructive/10 rounded-xl px-4 py-3">
-            {error}
-          </p>
-        )}
-        <Button
-          id="signal-sample-submit"
-          onClick={submit}
-          disabled={loading}
-          className="w-full h-14 rounded-xl bg-sky-500 hover:bg-sky-400 text-sky-950 font-bold text-base"
-        >
-          {loading ? <Loader2Icon className="animate-spin" /> : "Log Sample"}
         </Button>
       </div>
     </>
@@ -334,57 +294,47 @@ export function SignalButtons({
 
   return (
     <>
-      {/* 2×2 grid of large tap targets */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Primary actions */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
         <Button
           id="btn-add-ingredient"
           onClick={() => setModal("ingredient")}
-          className="h-20 flex flex-col gap-1.5 items-center justify-center rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/30 text-amber-300 font-semibold transition-all"
+          className="action-btn h-auto py-4 flex flex-col gap-1 items-center justify-center rounded-2xl bg-amber-500/12 hover:bg-amber-500/22 border border-amber-400/30 text-amber-300 font-semibold"
         >
-          <PackageIcon className="w-6 h-6" />
-          <span className="text-sm">Add Ingredient</span>
-        </Button>
-
-        <Button
-          id="btn-take-sample"
-          onClick={() => setModal("sample")}
-          className="h-20 flex flex-col gap-1.5 items-center justify-center rounded-2xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-sky-300 font-semibold transition-all"
-        >
-          <BeakerIcon className="w-6 h-6" />
-          <span className="text-sm">Take Sample</span>
+          <PackageIcon className="w-6 h-6 mb-0.5" />
+          <span className="text-sm font-bold leading-none">+ Ingredient</span>
+          <span className="text-[10px] font-normal opacity-55 leading-none">log what went in</span>
         </Button>
 
         <Button
           id="btn-add-note"
           onClick={() => setModal("note")}
-          className="h-20 flex flex-col gap-1.5 items-center justify-center rounded-2xl bg-violet-500/15 hover:bg-violet-500/25 border border-violet-400/30 text-violet-300 font-semibold transition-all"
+          className="action-btn h-auto py-4 flex flex-col gap-1 items-center justify-center rounded-2xl bg-violet-500/12 hover:bg-violet-500/22 border border-violet-400/30 text-violet-300 font-semibold"
         >
-          <StickyNoteIcon className="w-6 h-6" />
-          <span className="text-sm">Add Note</span>
-        </Button>
-
-        <Button
-          id="btn-end-refinement"
-          onClick={() => setModal("end")}
-          className="h-20 flex flex-col gap-1.5 items-center justify-center rounded-2xl bg-destructive/15 hover:bg-destructive/25 border border-destructive/30 text-red-400 font-semibold transition-all"
-        >
-          <CircleStopIcon className="w-6 h-6" />
-          <span className="text-sm">End Refinement</span>
+          <StickyNoteIcon className="w-6 h-6 mb-0.5" />
+          <span className="text-sm font-bold leading-none">Add Note</span>
+          <span className="text-[10px] font-normal opacity-55 leading-none">freeform observation</span>
         </Button>
       </div>
+
+      {/* Destructive action — full width, visually separated */}
+      <Button
+        id="btn-end-refinement"
+        onClick={() => setModal("end")}
+        className="action-btn w-full h-auto py-3.5 flex items-center justify-center gap-3 rounded-2xl bg-destructive/10 hover:bg-destructive/20 border border-destructive/35 text-red-400 font-semibold"
+      >
+        <CircleStopIcon className="w-5 h-5 flex-none" />
+        <div className="text-left">
+          <p className="text-sm font-bold leading-none">End Refinement</p>
+          <p className="text-[10px] font-normal opacity-55 leading-none mt-0.5">finalize &amp; save batch report</p>
+        </div>
+      </Button>
 
       {/* Shared modal shell */}
       <Dialog open={modal !== null} onOpenChange={(o) => !o && close()}>
         <DialogContent className="bg-card border-border/50 max-w-lg mx-4 rounded-2xl">
           {modal === "ingredient" && (
             <IngredientModal
-              workflowId={workflowId}
-              onClose={close}
-              onSuccess={onSignalSent ?? (() => {})}
-            />
-          )}
-          {modal === "sample" && (
-            <SampleModal
               workflowId={workflowId}
               onClose={close}
               onSuccess={onSignalSent ?? (() => {})}

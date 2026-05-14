@@ -8,7 +8,7 @@ export interface SaveRefinementReportInput {
   name: string;
   startTime: string;
   endTime: string;
-  cacaoPercentage: number;
+  cacaoPercentage: number | null;
   events: RefinementEvent[];
 }
 
@@ -19,8 +19,7 @@ export interface Activities {
 export async function saveRefinementReport(
   input: SaveRefinementReportInput
 ): Promise<void> {
-  const { workflowId, name, startTime, endTime, cacaoPercentage, events } =
-    input;
+  const { workflowId, name, startTime, endTime, events } = input;
 
   // Upsert the batch record (create or update to COMPLETED)
   const existing = await db
@@ -32,17 +31,18 @@ export async function saveRefinementReport(
   let batchId: string;
 
   if (existing.length > 0) {
-    // Update existing record to completed
     await db
       .update(batches)
       .set({
         status: "COMPLETED",
         endTime: new Date(endTime),
+        cacaoPercentage: input.cacaoPercentage != null
+          ? input.cacaoPercentage.toString()
+          : null,
       })
       .where(eq(batches.workflowId, workflowId));
     batchId = existing[0].id;
   } else {
-    // Insert new record (handles edge cases where batch was never pre-created)
     const inserted = await db
       .insert(batches)
       .values({
@@ -50,7 +50,9 @@ export async function saveRefinementReport(
         name,
         startTime: new Date(startTime),
         endTime: new Date(endTime),
-        cacaoPercentage: cacaoPercentage.toString(),
+        cacaoPercentage: input.cacaoPercentage != null
+          ? input.cacaoPercentage.toString()
+          : null,
         status: "COMPLETED",
       })
       .returning({ id: batches.id });

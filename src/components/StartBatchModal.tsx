@@ -17,6 +17,7 @@ import { PlusIcon, TrashIcon } from "lucide-react";
 interface Ingredient {
   name: string;
   amount: string;
+  isCacao: boolean;
 }
 
 interface StartBatchModalProps {
@@ -27,15 +28,14 @@ interface StartBatchModalProps {
 export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [cacaoPercentage, setCacaoPercentage] = useState("");
   const [ingredients, setIngredients] = useState<Ingredient[]>([
-    { name: "", amount: "" },
+    { name: "", amount: "", isCacao: false },
   ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const addIngredient = () =>
-    setIngredients((prev) => [...prev, { name: "", amount: "" }]);
+    setIngredients((prev) => [...prev, { name: "", amount: "", isCacao: false }]);
 
   const removeIngredient = (i: number) =>
     setIngredients((prev) => prev.filter((_, idx) => idx !== i));
@@ -43,19 +43,34 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
   const updateIngredient = (
     i: number,
     field: keyof Ingredient,
-    value: string
+    value: string | boolean
   ) => {
     setIngredients((prev) =>
       prev.map((ing, idx) => (idx === i ? { ...ing, [field]: value } : ing))
     );
   };
 
+  /** Live-compute cacao % from current ingredient state */
+  const computedCacaoPct = (): number | null => {
+    const totalGrams = ingredients.reduce((sum, ing) => {
+      const g = parseFloat(ing.amount);
+      return sum + (isNaN(g) ? 0 : g);
+    }, 0);
+    if (totalGrams === 0) return null;
+    const cacaoGrams = ingredients.reduce((sum, ing) => {
+      if (!ing.isCacao) return sum;
+      const g = parseFloat(ing.amount);
+      return sum + (isNaN(g) ? 0 : g);
+    }, 0);
+    return Math.round((cacaoGrams / totalGrams) * 10000) / 100;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!name.trim() || !cacaoPercentage) {
-      setError("Batch name and cacao % are required.");
+    if (!name.trim()) {
+      setError("Batch name is required.");
       return;
     }
 
@@ -66,7 +81,6 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim(),
-          cacaoPercentage,
           initialIngredients: ingredients.filter(
             (i) => i.name.trim() && i.amount.trim()
           ),
@@ -88,12 +102,19 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
     }
   };
 
+  const cacaoPct = computedCacaoPct();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-card border-border/50 max-w-lg mx-4 rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-foreground">
-            🍫 Start New Batch
+          <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-2">
+            Start New Batch
+            {cacaoPct !== null && (
+              <span className="ml-2 text-sm font-normal px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-300 border border-amber-400/30">
+                {cacaoPct}% cacao
+              </span>
+            )}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
             Fill in the details to begin a new refinement run.
@@ -115,29 +136,6 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
             />
           </div>
 
-          {/* Cacao % */}
-          <div className="space-y-2">
-            <Label htmlFor="cacao-pct" className="text-sm font-semibold">
-              Cacao Percentage
-            </Label>
-            <div className="relative">
-              <Input
-                id="cacao-pct"
-                type="number"
-                min="0"
-                max="100"
-                step="0.5"
-                placeholder="72"
-                value={cacaoPercentage}
-                onChange={(e) => setCacaoPercentage(e.target.value)}
-                className="h-14 text-base bg-secondary/50 border-border/60 rounded-xl pr-10"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">
-                %
-              </span>
-            </div>
-          </div>
-
           {/* Initial Ingredients */}
           <div className="space-y-3">
             <Label className="text-sm font-semibold">
@@ -146,19 +144,39 @@ export function StartBatchModal({ open, onOpenChange }: StartBatchModalProps) {
             {ingredients.map((ing, i) => (
               <div key={i} className="flex gap-2 items-center">
                 <Input
-                  placeholder="Cacao mass"
+                  placeholder="Ingredient name"
                   value={ing.name}
                   onChange={(e) => updateIngredient(i, "name", e.target.value)}
                   className="h-12 flex-1 bg-secondary/50 border-border/60 rounded-xl text-sm"
                 />
                 <Input
-                  placeholder="1200g"
+                  placeholder="grams"
+                  type="number"
+                  min="0"
+                  step="any"
                   value={ing.amount}
-                  onChange={(e) =>
-                    updateIngredient(i, "amount", e.target.value)
-                  }
-                  className="h-12 w-28 bg-secondary/50 border-border/60 rounded-xl text-sm"
+                  onChange={(e) => updateIngredient(i, "amount", e.target.value)}
+                  className="h-12 w-24 bg-secondary/50 border-border/60 rounded-xl text-sm"
                 />
+                {/* isCacao toggle */}
+                <label
+                  htmlFor={`is-cacao-${i}`}
+                  className={`flex items-center gap-1.5 h-12 px-3 rounded-xl border cursor-pointer select-none text-xs font-medium transition-colors whitespace-nowrap ${
+                    ing.isCacao
+                      ? "bg-amber-400/20 border-amber-400/50 text-amber-300"
+                      : "bg-secondary/30 border-border/40 text-muted-foreground hover:border-border/70"
+                  }`}
+                >
+                  <input
+                    id={`is-cacao-${i}`}
+                    type="checkbox"
+                    checked={ing.isCacao}
+                    onChange={(e) => updateIngredient(i, "isCacao", e.target.checked)}
+                    className="sr-only"
+                  />
+                  <span className="text-base">{ing.isCacao ? "🍫" : "○"}</span>
+                  Cacao
+                </label>
                 {ingredients.length > 1 && (
                   <button
                     type="button"

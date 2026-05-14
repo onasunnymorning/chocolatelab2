@@ -8,6 +8,20 @@
       "when": 1778551766418,
       "tag": "0000_long_warhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778725640366,
+      "tag": "0001_drop_cacao_percentage",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778727051634,
+      "tag": "0002_add_cacao_percentage_nullable",
+      "breakpoints": true
     }
   ]
 }
