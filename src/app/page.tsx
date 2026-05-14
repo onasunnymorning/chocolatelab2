@@ -46,11 +46,10 @@ function ActiveBatchCard({ batch }: { batch: ActiveWorkflow }) {
     <Link href={`/batch/${batch.workflowId}`}>
       <div className="group choc-card-glow bg-card rounded-2xl px-5 py-5 flex items-center gap-4 border border-amber-400/20 hover:bg-card/80 transition-all active:scale-[0.98] cursor-pointer min-h-[96px]">
         <div className="flex-1 min-w-0">
-          <p className="text-4xl font-black text-foreground leading-none truncate tracking-tight">
+          <p className="text-2xl font-bold text-foreground leading-none truncate tracking-tight">
             {batch.name}
           </p>
-          <p className="text-xs text-amber-400/70 mt-2.5 flex items-center gap-1.5 font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 live-pulse inline-block" />
+          <p className="text-base text-amber-400 mt-2 font-mono font-semibold">
             <ElapsedTime startTime={batch.startTime} />
           </p>
         </div>
