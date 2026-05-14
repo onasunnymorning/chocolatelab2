@@ -25,7 +25,14 @@ export const metadata: Metadata = {
     title: "ChocLab",
   },
   icons: {
-    apple: "/apple-touch-icon.png",
+    apple: [
+      // iPhone retina (default fallback)
+      { url: "/apple-touch-icon.png", sizes: "180x180" },
+      // iPad Pro retina
+      { url: "/apple-touch-icon-167.png", sizes: "167x167" },
+      // iPad / iPad mini retina
+      { url: "/apple-touch-icon-152.png", sizes: "152x152" },
+    ],
   },
 };
 
@@ -35,6 +42,10 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: "#2d1a0e",
+  // Extend content under the iOS status bar so the dark background shows
+  // through instead of the default white strip. Requires safe-top padding
+  // on sticky headers so content isn't hidden behind the status bar.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

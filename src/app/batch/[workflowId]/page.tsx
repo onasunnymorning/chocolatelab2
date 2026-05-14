@@ -136,7 +136,7 @@ export default function BatchPage() {
   return (
     <div className="min-h-screen fade-up pb-8">
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-border/30 bg-background/80 backdrop-blur-md">
+      <header className="safe-top sticky top-0 z-30 border-b border-border/30 bg-background/80 backdrop-blur-md">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
           <Link
             href="/"

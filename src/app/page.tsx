@@ -135,7 +135,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen fade-up">
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-border/30 bg-background/80 backdrop-blur-md">
+      <header className="safe-top sticky top-0 z-30 border-b border-border/30 bg-background/80 backdrop-blur-md">
         <div className="max-w-2xl mx-auto px-4 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
