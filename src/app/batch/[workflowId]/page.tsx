@@ -41,6 +41,28 @@ function ElapsedTimer({ startTime }: { startTime: string }) {
   );
 }
 
+/** Compact elapsed shown inline in the status row on mobile only */
+function InlineTimer({ startTime }: { startTime: string }) {
+  const [elapsed, setElapsed] = useState("");
+
+  useEffect(() => {
+    const update = () => {
+      const diff = Date.now() - new Date(startTime).getTime();
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      setElapsed(`${h}h ${String(m).padStart(2, "0")}m`);
+    };
+    update();
+    const id = setInterval(update, 60000);
+    return () => clearInterval(id);
+  }, [startTime]);
+
+  return (
+    <span className="sm:hidden font-mono opacity-70">· {elapsed}</span>
+  );
+}
+
+
 export default function BatchPage() {
   const { workflowId } = useParams<{ workflowId: string }>();
   const router = useRouter();
@@ -153,6 +175,7 @@ export default function BatchPage() {
                 <span className="flex items-center gap-1.5 text-xs text-amber-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400 live-pulse" />
                   {t.batch.statusRefining}
+                  <InlineTimer startTime={state.startTime} />
                 </span>
               )}
             </div>
@@ -160,7 +183,9 @@ export default function BatchPage() {
           {/* Timer + language switcher in header */}
           <div className="flex items-center gap-2 flex-none">
             {!state.isEnded && (
-              <ElapsedTimer startTime={state.startTime} />
+              <div className="hidden sm:block">
+                <ElapsedTimer startTime={state.startTime} />
+              </div>
             )}
             <LanguageSwitcher />
           </div>
