@@ -150,7 +150,7 @@ export default function DashboardPage() {
               <h1 className="text-lg font-semibold tracking-tight text-foreground leading-none">
                 {t.appName}
               </h1>
-              <p className="text-[11px] tracking-widest uppercase text-muted-foreground/70 mt-0.5">
+              <p className="hidden sm:block text-[11px] tracking-widest uppercase text-muted-foreground/70 mt-0.5">
                 {t.appSubtitle}
               </p>
             </div>
@@ -160,10 +160,11 @@ export default function DashboardPage() {
             <Button
               id="open-start-modal"
               onClick={() => setShowModal(true)}
-              className="h-10 px-4 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 amber-glow transition-all flex items-center gap-2"
+              aria-label={t.dashboard.newBatch}
+              className="h-10 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 amber-glow transition-all flex items-center gap-2 px-3 sm:px-4"
             >
-              <PlusIcon className="w-4 h-4" />
-              {t.dashboard.newBatch}
+              <PlusIcon className="w-4 h-4 flex-none" />
+              <span className="hidden sm:inline">{t.dashboard.newBatch}</span>
             </Button>
           </div>
         </div>
